@@ -61,3 +61,15 @@ nvim <你的网络名>.tex
 ```bash
 latexmk -f <你的网络名>.tex
 ```
+
+# 引用
+```bibtex
+@article{DrawNeuralNet2024,
+  title={DrawNeuralNet: A LaTeX package for creating neural network architecture diagrams},
+  author={YBX},
+  journal={GitHub repository},
+  url={https://github.com/IammyselfYBX/DrawNeuralNet},
+  year={2024}
+}
+```
+
