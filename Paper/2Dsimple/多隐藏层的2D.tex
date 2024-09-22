@@ -1,0 +1,81 @@
+\documentclass[border=15pt, multi, tikz]{standalone}
+\usepackage{ctex}  % 引入ctex包以支持中文
+\usepackage{import}
+\subimport{../../layers/}{init}  % 确保路径正确
+\usetikzlibrary{positioning}
+
+% 定义颜色
+\definecolor{nodecolor}{rgb}{1, 0.7, 0.5}  % 浅黄色
+\definecolor{linecolor}{rgb}{0.8, 0.1, 0.1}  % 深红色
+\definecolor{somelinecolor}{rgb}{0.8, 0.2, 0.2}  % 特殊的红色调用于标记特定连线
+
+\begin{document}
+\begin{tikzpicture}[neuron/.style={circle, fill=nodecolor, minimum size=1em, text=white},
+                    connect/.style={-latex, draw=linecolor},
+                    specialconnect/.style={-latex, draw=somelinecolor, line width=1.5pt}]  % 定义特殊连线样式
+    % 定义每层的节点数
+    \def\inputnum{5} % 输入层节点数
+    \def\hiddennum{6} % 隐藏层节点数
+    \def\outputnum{2} % 输出层节点数
+
+    % 绘制输入层节点
+    \foreach \i in {1,...,\inputnum}
+    {
+        \node[neuron] (Input-\i) at (0,-2*\i em) {};
+        \ifnum\i=2 \node at (0,-4em) {2}; \fi  % 在第二个节点上标记数字2
+    }
+    \node[font=\small, align=center] at (0, -12em) {输入层};
+
+    % 绘制隐藏层h1节点
+    \foreach \i in {1,...,\hiddennum}
+    {
+        \node[neuron] (Hidden1-\i) at (3,-2*\i em + 1em) {};
+    }
+    \node[font=\small, align=center] at (3, -13em) {隐藏层 h1};
+
+    % 绘制隐藏层h2节点
+    \foreach \i in {1,...,\hiddennum}
+    {
+        \node[neuron] (Hidden2-\i) at (6,-2*\i em + 1em) {};
+    }
+    \node[font=\small, align=center] at (6, -13em) {隐藏层 h2};
+
+    % 绘制输出层节点
+    \foreach \i in {1,...,\outputnum}
+    {
+        \node[neuron] (Output-\i) at (9,-5*\i em + 2em) {};
+    }
+    \node[font=\small, align=center] at (9, -12em) {输出层};
+
+    % 连接输入层和隐藏层h1
+    \foreach \i in {1,...,\inputnum}
+    {
+        \foreach \j in {1,...,\hiddennum}
+        {
+            \ifnum\i=2 \ifnum\j=3
+                \draw[specialconnect] (Input-\i) -- (Hidden1-\j);  % 使用特殊颜色标记连接
+            \else
+                \draw[connect] (Input-\i) -- (Hidden1-\j);
+            \fi
+            \else
+                \draw[connect] (Input-\i) -- (Hidden1-\j);
+            \fi
+        }
+    }
+
+    % 连接隐藏层h1和h2
+    \foreach \i in {1,...,\hiddennum}
+    {
+        \draw[connect] (Hidden1-\i) -- (Hidden2-\i);  % 一一对应连接
+    }
+
+    % 连接隐藏层h2和输出层
+    \foreach \i in {1,...,\hiddennum}
+    {
+        \foreach \j in {1,...,\outputnum}
+        {
+            \draw[connect] (Hidden2-\i) -- (Output-\j);
+        }
+    }
+\end{tikzpicture}
+\end{document}
