@@ -1,7 +1,7 @@
 # Tikz论文插图绘制神经网络
 ## 1. 简介
 本项目参考
-[https://github.com/HarisIqbal88/PlotNeuralNet](PlotNeuralNet)
+[PlotNeuralNet](https://github.com/HarisIqbal88/PlotNeuralNet)
 
 新增了一些功能
 - [X] 支持中文
@@ -10,7 +10,7 @@
 - [ ] 支持绘画RNN, Transformer等更复杂的网络
 
 ## 2. 使用方法
-[https://www.bilibili.com/video/BV1Trt2ezE6G/](演示视频)
+[演示视频](https://www.bilibili.com/video/BV1Trt2ezE6G/)
 
 ### 2.1 安装
 ```bash
