@@ -10,6 +10,8 @@
 - [ ] 支持绘画RNN, Transformer等更复杂的网络
 
 ## 2. 使用方法
+[https://www.bilibili.com/video/BV1Trt2ezE6G/](演示视频)
+
 ### 2.1 安装
 ```bash
 git clone https://github.com/IammyselfYBX/DrawNeuralNet.git
