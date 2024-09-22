@@ -1,0 +1,30 @@
+% 提供圆形神经元样式的定义
+\ProvidesPackage{circle}
+
+% 导入必要的TikZ库
+\RequirePackage{tikz}
+
+% 设置circle样式
+\tikzset{
+    neuron/.style={
+        circle,
+        draw=black,   % 边框颜色为黑色
+        fill=gray!50, % 填充为灰色
+        thick,
+        minimum size=1cm, % 最小尺寸
+    },
+    connect/.style={
+        -latex,  % 带箭头的线
+        thin
+    }
+}
+
+% 用于创建单个神经元的命令
+\newcommand{\neuron}[4]{
+    \node[neuron] (#1) at (#2) {};
+    \node at (#2) {#3}; % 在神经元中间放置文字标签
+    \foreach \source/\dest in {#4}
+    {
+        \draw[connect] (\source) -- (\dest);
+    }
+}
