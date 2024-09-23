@@ -6,6 +6,7 @@
 新增了一些功能
 - [X] 支持中文
 - [X] 支持2D图
+- [X] 支持卷积核的绘制
 - [ ] 支持更简单的Python调用
 - [ ] 支持绘画RNN, Transformer等更复杂的网络
 
@@ -46,7 +47,7 @@ nvim <你的网络名>.tex
 \documentclass[border=15pt, multi, tikz]{standalone}
 \usepackage{import}
 \subimport{../../layers/}{init}
-\usetikzlibrary{positioning}
+\usetikzlibrary{positioning, calc}
 \usetikzlibrary{3d} %for including external image 
 
 \def\ConvColor{rgb:yellow,5;red,2.5;white,5}
