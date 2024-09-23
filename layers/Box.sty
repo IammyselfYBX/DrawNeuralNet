@@ -1,15 +1,17 @@
 \ProvidesPackage{Box} % 声明了包的名称为 Box
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 本代码可以用来画简单的盒子，颜色可以自定义。
-% 可以用于卷积、反卷积等
+% 可以用于卷积、反卷积等，卷积核部分支持自定义标签
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \tikzset{Box/.pic={\tikzset{/boxblock/.cd,#1} % 创建一个名为 Box 的图形环境
+        % 定义一个"Box"样式
+        % 它控制每个盒子的边框和填充颜色，边框是虚线，透明度由 \opacity 控制，填充颜色由 \fill 控制
         \tikzstyle{box}=[every edge/.append style={pic actions, densely dashed, opacity=.7},fill opacity=\opacity, pic actions,fill=\fill]
         
         \pgfmathsetmacro{\y}{\cubey*\scale}
         \pgfmathsetmacro{\z}{\cubez*\scale}
    
-        %Multiple concatenated boxes
+        % 绘制多个相连的方块
         \foreach[count=\i,%
                  evaluate=\i as \xlabel using {array({\boxlabels},\i-1)},% 
                  evaluate=\unscaledx as \k using {\unscaledx*\scale+\prev}, remember=\k as \prev (initially 0)] 
@@ -31,13 +33,12 @@
                 %dotted edges
                 (f) edge (g)
                 (b) edge (g)
-                (h) edge (g)    
-            ;
+                (h) edge (g);   
             \path (b) edge ["\xlabel"',midway] (c); % 添加 X 轴的标签
             
             \xdef\LastEastx{\k} %\k persists as \LastEastx after loop 
-        }%Loop ends
-        \draw [box] (d) -- (e) -- (f) -- (c) -- cycle; %East face of last box     
+        }% 循环结束
+        \draw [box] (d) -- (e) -- (f) -- (c) -- cycle; % 最后一个方块的东面
         
         \coordinate (a1) at (0 , \y/2 , \z/2);
         \coordinate (b1) at (0 ,-\y/2 , \z/2);
@@ -47,20 +48,19 @@
         % text centered: 表示标签的对齐方式为居中
         % sloped: 表示标签的旋转角度为斜的
         
-        \path (c) edge ["\small\zlabel"',depthlabel](f); %depth label 
-        \path (b1) edge ["\ylabel",midway] (a1);  %height label
-        
+        \path (c) edge ["\small\zlabel"',depthlabel](f); %深度标签 
+        \path (b1) edge ["\ylabel",midway] (a1);  %高度标签
         
         \tikzstyle{captionlabel}=[text width=15*\LastEastx/\scale,text centered]       
         \path (\LastEastx/2,-\y/2,+\z/2) + (0,-25pt) coordinate (cap) 
-        edge ["\textcolor{black}{ \bf \caption}"',captionlabel](cap) ; %Block caption/pic object label
+        edge ["\textcolor{black}{ \bf \caption}"',captionlabel](cap); %Block caption/pic object label
          
         %Define nodes to be used outside on the pic object
-        \coordinate (\name-west)   at (0,0,0) ;
-        \coordinate (\name-east)   at (\LastEastx, 0,0) ;
+        \coordinate (\name-west)   at (0,0,0);
+        \coordinate (\name-east)   at (\LastEastx, 0,0);
         \coordinate (\name-north)  at (\LastEastx/2,\y/2,0);
         \coordinate (\name-south)  at (\LastEastx/2,-\y/2,0);       
-        \coordinate (\name-anchor) at (\LastEastx/2, 0,0) ;
+        \coordinate (\name-anchor) at (\LastEastx/2, 0,0);
         
         \coordinate (\name-near) at (\LastEastx/2,0,\z/2);
         \coordinate (\name-far)  at (\LastEastx/2,0,-\z/2);       
@@ -85,12 +85,110 @@
         \coordinate (\name-nearsouthwest)  at (0,-\y/2, \z/2);
         \coordinate (\name-farsouthwest)   at (0,-\y/2,-\z/2);
         
+        % 添加卷积核 (如果指定了卷积核的参数)
+        \pgfmathsetmacro{\kernelx}{\kernelx*\scale}
+        \pgfmathsetmacro{\kernely}{\kernely*\scale}
+        \pgfmathsetmacro{\kernelz}{\kernelz*\scale}
+
+        \ifdefined\kernelx
+            \ifdefined\kernely
+                \ifdefined\kernelz
+                    % 定义卷积核的位置，避免 \kern 命名冲突，使用 \kposx 和 \kposy
+                    \pgfmathsetmacro{\kposx}{\LastEastx/2}
+                    \pgfmathsetmacro{\kposy}{0}
+                    
+                    \ifnum \kernelPos=1 % 中心
+                        \pgfmathsetmacro{\kposx}{\LastEastx/2}
+                        \pgfmathsetmacro{\kposy}{0}
+                    \fi
+                    \ifnum \kernelPos=2 % 东北
+                        \pgfmathsetmacro{\kposx}{\LastEastx}
+                        \pgfmathsetmacro{\kposy}{\y/2}
+                    \fi
+                    \ifnum \kernelPos=3 % 西北
+                        \pgfmathsetmacro{\kposx}{0}
+                        \pgfmathsetmacro{\kposy}{\y/2}
+                    \fi
+                    \ifnum \kernelPos=4 % 西南
+                        \pgfmathsetmacro{\kposx}{0}
+                        \pgfmathsetmacro{\kposy}{-\y/2}
+                    \fi
+                    \ifnum \kernelPos=5 % 东南
+                        \pgfmathsetmacro{\kposx}{\LastEastx}
+                        \pgfmathsetmacro{\kposy}{-\y/2}
+                    \fi
+
+                    % 画出卷积核 (嵌套的 box)
+                    \coordinate (ka) at (\kposx-\kernelx/2 , \kposy+\kernely/2 , \kernelz/2); 
+                    \coordinate (kb) at (\kposx-\kernelx/2 , \kposy-\kernely/2 , \kernelz/2); 
+                    \coordinate (kc) at (\kposx+\kernelx/2 , \kposy-\kernely/2 , \kernelz/2); 
+                    \coordinate (kd) at (\kposx+\kernelx/2 , \kposy+\kernely/2 , \kernelz/2); 
+                    \coordinate (ke) at (\kposx+\kernelx/2 , \kposy+\kernely/2 ,-\kernelz/2); 
+                    \coordinate (kf) at (\kposx+\kernelx/2 , \kposy-\kernely/2 ,-\kernelz/2); 
+                    \coordinate (kg) at (\kposx-\kernelx/2 , \kposy-\kernely/2 ,-\kernelz/2); 
+                    \coordinate (kh) at (\kposx-\kernelx/2 , \kposy+\kernely/2 ,-\kernelz/2); 
+                    
+                    % 定义卷积核的颜色 (根据 kernelFill 参数)
+                    \tikzstyle{kernelbox}=[every edge/.append style={pic actions, densely dashed, opacity=.7},fill opacity=\kernelOpacity, pic actions,fill=\kernelFill]
+                    % \draw [box, fill opacity=\kernelOpacity] 
+                    %     (kd) -- (ka) -- (kb) -- (kc) -- cycle     
+                    %     (kd) -- (ka) -- (kh) -- (ke) -- cycle
+                    %     % 卷积核的虚线边
+                    %     (kf) edge (kg)
+                    %     (kb) edge (kg)
+                    %     (kh) edge (kg);
+                    % \draw [box, fill opacity=\kernelOpacity] (kd) -- (ke) -- (kf) -- (kc) -- cycle; % 最后一个面的绘制
+
+                    % 绘制虚线部分 (所有边框除了最后一个面)
+                    % \draw [box, densely dashed, fill opacity=\kernelOpacity] 
+                    % (kd) -- (ka) -- (kb) -- (kc) -- cycle; % 前面的矩形 (虚线)
+                    % \draw [box, densely dashed, fill opacity=\kernelOpacity]
+                    % (kd) -- (ka) -- (kh) -- (ke) -- cycle; % 顶部 (虚线)
+                    % \draw [box, densely dashed, fill opacity=\kernelOpacity] 
+                    % (kf) edge (kg); % 底部虚线
+                    % \draw [box, densely dashed, fill opacity=\kernelOpacity] 
+                    % (kb) edge (kg); % 底侧面的虚线
+                    % \draw [box, densely dashed, fill opacity=\kernelOpacity] 
+                    % (kh) edge (kg); % 后面的虚线
+                    \draw [kernelbox, densely dashed, fill opacity=\kernelOpacity] 
+                    (kd) -- (ka) -- (kb) -- (kc) -- cycle; % 前面的矩形 (虚线)
+                    \draw [kernelbox, densely dashed, fill opacity=\kernelOpacity]
+                    (kd) -- (ka) -- (kh) -- (ke) -- cycle; % 顶部 (虚线)
+                    \draw [kernelbox, densely dashed, fill opacity=\kernelOpacity] 
+                    (kf) edge (kg); % 底部虚线
+                    \draw [kernelbox, densely dashed, fill opacity=\kernelOpacity] 
+                    (kb) edge (kg); % 底侧面的虚线
+                    \draw [kernelbox, densely dashed, fill opacity=\kernelOpacity] 
+                    (kh) edge (kg); % 后面的虚线
+
+                    % % 绘制实线部分 (最后一个面)
+                    % \draw [box, fill opacity=\kernelOpacity] 
+                    % (kd) -- (ke) -- (kf) -- (kc) -- cycle; % 右侧面的矩形 (实线)
+                    \draw [kernelbox, fill opacity=\kernelOpacity] 
+                    (kd) -- (ke) -- (kf) -- (kc) -- cycle; % 右侧面的矩形 (实线)
+
+                    % 添加卷积核的标签
+                    % \path (kb) edge ["\small\kernelZLabel"',depthlabel](kf); % 深度标签
+                    % \path (ka) edge ["\small\kernelYLabel",midway] (kd);     % 高度标签
+                    % \path (kb) edge ["\kernelXLabel",midway] (kc);           % 宽度标签
+                    % 添加卷积核的标签 (无连线)
+                    % \node at ($(kf)!0.5!(kg)$) {\small \kernelZLabel};  % 深度标签
+                    % \node at ($(ka)!0.5!(kd)$) {\small \kernelZLabel};  % 深度标签
+                    % \node at ($(kc)!0.5!(kd)$) {\small \kernelYLabel};    % Y 高度标签
+                    % \node at ($(kd)!0.5!(ke)$) {\kernelXLabel};         % X 宽度标签
+                    \node at ($(ka)!0.5!(kd)$) [text width=2cm, align=center] {\small \kernelZLabel};  % 深度标签
+                    \node at ($(kc)!0.5!(kd)$) [text width=2cm, align=center] {\small \kernelYLabel};  % Y 高度标签
+                    \node at ($(kd)!0.5!(ke)$) [text width=2cm, align=center] {\kernelXLabel};         % X 宽度标签
+
+                \fi
+            \fi
+        \fi
     },
     /boxblock/.search also={/tikz},
     /boxblock/.cd,
     width/.store        in=\cubex,
     height/.store       in=\cubey,
-    depth/.store        in=\cubez,
+    depth/.store       in=\cubez,
     scale/.store        in=\scale,
     xlabel/.store       in=\boxlabels,
     ylabel/.store       in=\ylabel,
@@ -110,4 +208,23 @@
     zlabel=,
     caption=,
     name=,
+    % 卷积核相关的默认值
+    kernelx/.store      in=\kernelx,
+    kernely/.store      in=\kernely,
+    kernelz/.store      in=\kernelz,
+    kernelPos/.store   in=\kernelPos,
+    kernelOpacity/.store in=\kernelOpacity,
+    kernelXLabel/.store in=\kernelXLabel,  % 卷积核宽度标签
+    kernelYLabel/.store in=\kernelYLabel,  % 卷积核高度标签
+    kernelZLabel/.store in=\kernelZLabel,  % 卷积核深度标签
+    kernelFill/.store   in=\kernelFill,    % 卷积核填充颜色
+    kernelx=0,
+    kernely=0,
+    kernelz=0,
+    kernelPos=1, % 默认居中
+    kernelOpacity=0.6,
+    kernelXLabel=,    % 默认标签为空
+    kernelYLabel=,    % 默认标签为空
+    kernelZLabel=,    % 默认标签为空
+    kernelFill={rgb:red,2;green,3;blue,5}, % 默认卷积核填充颜色
 }
