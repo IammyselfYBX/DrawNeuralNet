@@ -63,7 +63,7 @@
         
         \coordinate (a1) at (0 , \y/2 , \z/2);
         \coordinate (b1) at (0 ,-\y/2 , \z/2);
-        \tikzstyle{depthlabel}=[pos=0,text width=14*\z,text centered,sloped] % 深度标签样式定义
+        \tikzstyle{depthlabel}=[pos=0.5,text width=14*\z,text centered,sloped] % 深度标签样式定义
         \path (c) edge ["\small\zlabels"',depthlabel](f); % 添加深度标签
         \path (b1) edge ["\ylabel",midway] (a1);  % 添加高度标签
         

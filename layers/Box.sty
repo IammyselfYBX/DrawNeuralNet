@@ -18,6 +18,10 @@
                  \unscaledx in \cubex
         {
             \pgfmathsetmacro{\x}{\unscaledx*\scale}
+            % 定义第一个 Box 的西面坐标
+            \ifnum\i=1
+                \xdef\FirstWestx{\k-\x} % 保存第一个盒子的西面坐标
+            \fi
             \coordinate (a) at (\k-\x , \y/2 , \z/2); 
             \coordinate (b) at (\k-\x ,-\y/2 , \z/2); 
             \coordinate (c) at (\k    ,-\y/2 , \z/2); 
@@ -93,28 +97,32 @@
         \ifdefined\kernelx
             \ifdefined\kernely
                 \ifdefined\kernelz
-                    % 定义卷积核的位置，避免 \kern 命名冲突，使用 \kposx 和 \kposy
-                    \pgfmathsetmacro{\kposx}{\LastEastx/2}
+                    % 根据卷积核的位置参数定义其坐标
+                    % \pgfmathsetmacro{\kposx}{\LastEastx/2}
+                    \pgfmathsetmacro{\kposx}{\FirstWestx/2} % 从最左侧的 Box 开始绘制
                     \pgfmathsetmacro{\kposy}{0}
                     
-                    \ifnum \kernelPos=1 % 中心
-                        \pgfmathsetmacro{\kposx}{\LastEastx/2}
+                    \ifnum \kernelPos=1 % 中心位置
+                        % \pgfmathsetmacro{\kposx}{\LastEastx/2}
+                        \pgfmathsetmacro{\kposx}{\FirstWestx/2} % 从最左侧的 Box 开始绘制
                         \pgfmathsetmacro{\kposy}{0}
                     \fi
-                    \ifnum \kernelPos=2 % 东北
-                        \pgfmathsetmacro{\kposx}{\LastEastx}
+                    \ifnum \kernelPos=2 % 东北角
+                        % \pgfmathsetmacro{\kposx}{\LastEastx}
+                        \pgfmathsetmacro{\kposx}{\FirstWestx} % 从最左侧的 Box 开始绘制
                         \pgfmathsetmacro{\kposy}{\y/2}
                     \fi
-                    \ifnum \kernelPos=3 % 西北
+                    \ifnum \kernelPos=3 % 西北角
                         \pgfmathsetmacro{\kposx}{0}
                         \pgfmathsetmacro{\kposy}{\y/2}
                     \fi
-                    \ifnum \kernelPos=4 % 西南
+                    \ifnum \kernelPos=4 % 西南角
                         \pgfmathsetmacro{\kposx}{0}
                         \pgfmathsetmacro{\kposy}{-\y/2}
                     \fi
-                    \ifnum \kernelPos=5 % 东南
-                        \pgfmathsetmacro{\kposx}{\LastEastx}
+                    \ifnum \kernelPos=5 % 东南角
+                        % \pgfmathsetmacro{\kposx}{\LastEastx}
+                        \pgfmathsetmacro{\kposx}{\FirstWestx} % 从最左侧的 Box 开始绘制
                         \pgfmathsetmacro{\kposy}{-\y/2}
                     \fi
 
