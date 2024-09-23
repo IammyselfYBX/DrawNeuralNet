@@ -1,10 +1,9 @@
-\ProvidesPackage{Box}
-
+\ProvidesPackage{Box} % 声明了包的名称为 Box
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% This Block can draw simple block of boxes with custom colors. 
-% Can be used for conv, deconv etc
+% 本代码可以用来画简单的盒子，颜色可以自定义。
+% 可以用于卷积、反卷积等
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\tikzset{Box/.pic={\tikzset{/boxblock/.cd,#1}
+\tikzset{Box/.pic={\tikzset{/boxblock/.cd,#1} % 创建一个名为 Box 的图形环境
         \tikzstyle{box}=[every edge/.append style={pic actions, densely dashed, opacity=.7},fill opacity=\opacity, pic actions,fill=\fill]
         
         \pgfmathsetmacro{\y}{\cubey*\scale}
@@ -34,7 +33,7 @@
                 (b) edge (g)
                 (h) edge (g)    
             ;
-            \path (b) edge ["\xlabel"',midway] (c);
+            \path (b) edge ["\xlabel"',midway] (c); % 添加 X 轴的标签
             
             \xdef\LastEastx{\k} %\k persists as \LastEastx after loop 
         }%Loop ends
@@ -42,9 +41,13 @@
         
         \coordinate (a1) at (0 , \y/2 , \z/2);
         \coordinate (b1) at (0 ,-\y/2 , \z/2);
-        \tikzstyle{depthlabel}=[pos=0,text width=14*\z,text centered,sloped]       
+        \tikzstyle{depthlabel}=[pos=0.5,text width=14*\z,text centered,sloped]       
+        % pos: 0.5 表示标签的位置在中间
+        % text width: 14*\z 表示标签的宽度
+        % text centered: 表示标签的对齐方式为居中
+        % sloped: 表示标签的旋转角度为斜的
         
-        \path (c) edge ["\small\zlabel"',depthlabel](f); %depth label
+        \path (c) edge ["\small\zlabel"',depthlabel](f); %depth label 
         \path (b1) edge ["\ylabel",midway] (a1);  %height label
         
         
