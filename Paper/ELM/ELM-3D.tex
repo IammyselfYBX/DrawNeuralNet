@@ -1,0 +1,82 @@
+\documentclass[border=8pt, multi, tikz]{standalone}
+\usepackage{import}
+\usepackage{ctex}  % 引入ctex包以支持中文
+\subimport{../../layers/}{init}
+\usetikzlibrary{positioning, calc, 3d} % 引入3d库
+
+% 定义颜色
+\def\KernelColor{rgb:red,0;green,166;blue,82}
+\def\ConvColor{rgb:yellow,5;red,2.5;white,5}
+\def\ConvReluColor{rgb:yellow,5;red,5;white,5}
+\def\PoolColor{rgb:red,1;black,0.3}
+\def\UnpoolColor{rgb:blue,2;green,1;black,0.3}
+\def\FcColor{rgb:blue,5;red,2.5;white,5}
+\def\FcReluColor{rgb:blue,5;red,5;white,4}
+\def\SoftmaxColor{rgb:magenta,5;black,7}
+
+% 自定义箭头的命令
+\newcommand{\copymidarrow}{\tikz \draw[-Stealth,line width =0.8mm,draw={rgb:blue,4;red,1;green,1;black,3}] (-0.3,0) -- ++(0.3,0);}
+
+
+\begin{document}
+\begin{tikzpicture}
+\tikzstyle{connection}=[ultra thick,every node/.style={sloped,allow upside down},draw=\edgecolor,opacity=0.7]
+
+
+% 总节点数
+\def\numinputs{5}
+\def\numhidden{6}
+\def\numoutputs{2}
+
+% 计算每一层的垂直中心，偶数和奇数判断
+\pgfmathsetmacro{\inputcenter}{(\numinputs - 1) / 2}
+\pgfmathsetmacro{\hiddencenter}{(\numhidden - 1) / 2}
+\pgfmathsetmacro{\outputcenter}{(\numoutputs - 1) / 2}
+
+% 输入层节点位置
+\foreach \i in {1,...,\numinputs}
+{
+    \pgfmathsetmacro{\y}{\inputcenter - (\i - 1)} % 根据输入层的中点调整y坐标
+    \pic[shift={(0,\y,5)}] at (0,\y,0) {Ball={name=input\i, fill=blue, opacity=0.6, radius=2.5, logo=$x_\i$}};
+}
+\node[font=\small, align=left] at (0, -5, 5) {输入层}; % 居中调整字体大小
+
+% 隐藏层节点位置
+\foreach \i in {1,...,\numhidden}
+{
+    \pgfmathsetmacro{\y}{\hiddencenter - (\i - 1)} % 根据隐藏层的中点调整y坐标
+    % \pic[shift={(5,\y,5)}] at (5,\y,5) {Ball={name=hidden\i, fill=green, opacity=0.6, radius=2.5, logo=$h_\i$}};
+    \pic[shift={(5,\y,5)}] at (0,\y,0) {Ball={name=hidden\i, fill=green, opacity=0.6, radius=2.5, logo=$h_\i$}};
+}
+\node[font=\small, align=center] at (5, -6, 5) {隐藏层}; % 居中调整字体大小
+
+% 输出层节点位置
+\foreach \i in {1,...,\numoutputs}
+{
+    \pgfmathsetmacro{\y}{\outputcenter - (\i - 1)} % 根据输出层的中点调整y坐标
+    % \pic[shift={(10,\y,10)}] at (10,\y,10) {Ball={name=output\i, fill=red, opacity=0.6, radius=2.5, logo=$y_\i$}};
+    \pic[shift={(10,\y,5)}] at (0,\y,0) {Ball={name=output\i, fill=red, opacity=0.6, radius=2.5, logo=$y_\i$}};
+}
+\node[font=\small, align=center] at (10, -2, 5) {输出层}; % 居中调整字体大小
+
+% 连接输入层到隐藏层
+\foreach \i in {1,...,\numinputs}
+{
+    \foreach \j in {1,...,\numhidden}
+    {
+        \draw [connection]  (input\i-east) -- node {\copymidarrow} (hidden\j-west);
+    }
+}
+
+% 连接隐藏层到输出层
+\foreach \i in {1,...,\numhidden}
+{
+    \foreach \j in {1,...,\numoutputs}
+    {
+        \draw [connection]  (hidden\i-east) -- node {\copymidarrow} (output\j-west);
+    }
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{tikzpicture}
+\end{document}
