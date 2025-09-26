@@ -1,0 +1,97 @@
+\ProvidesPackage{RoundedRectangle}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 此模块可以绘制2D平面的圆角矩形块，可以自定义颜色和圆角半径
+% 适用于卷积层、全连接层等神经网络组件的2D可视化
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tikzset{RoundedRectangle/.pic={\tikzset{/roundedrectblock/.cd,#1}
+        % 定义2D圆角矩形的样式，设置填充透明度、边框样式和圆角
+        \tikzstyle{roundedrect}=[fill opacity=\opacity, pic actions, fill=\fill, 
+                                draw=\bordercolor, line width=\borderwidth, 
+                                rounded corners=\cornerradius]
+        
+        % 计算实际的尺寸（应用缩放因子）
+        \pgfmathsetmacro{\y}{\cubey*\scale}  % 高度
+   
+        % 绘制多个连接的2D圆角矩形块
+        \foreach[count=\i,%
+                 evaluate=\i as \xlabel using {array({\boxlabels},\i-1)},% 获取标签
+                 evaluate=\unscaledx as \k using {\unscaledx*\scale+\prev}, remember=\k as \prev (initially 0)] 
+                 \unscaledx in \cubex
+        {
+            \pgfmathsetmacro{\x}{\unscaledx*\scale}  % 当前块的宽度
+            
+            % 定义2D圆角矩形的4个顶点坐标（平面矩形）
+            \coordinate (a) at (\k-\x , \y/2);   % 左上
+            \coordinate (b) at (\k-\x ,-\y/2);   % 左下
+            \coordinate (c) at (\k    ,-\y/2);   % 右下
+            \coordinate (d) at (\k    , \y/2);   % 右上
+        
+            % 绘制2D圆角矩形
+            \draw [roundedrect] 
+                (a) -- (d) -- (c) -- (b) -- cycle;  % 绘制完整的矩形
+            
+            % 在底边中点添加宽度标签
+            \path (b) edge ["\xlabel"',midway] (c);
+            
+            % 保存最后一个块的东边x坐标
+            \xdef\LastEastx{\k} %\k在循环结束后保持为\LastEastx
+        }%循环结束
+        
+        % 定义用于标签定位的坐标点
+        \coordinate (a1) at (0 , \y/2);
+        \coordinate (b1) at (0 ,-\y/2);
+        
+        % 添加高度标签
+        \path (b1) edge ["\ylabel",midway] (a1);  % 高度标签
+        
+        % 设置标题标签样式并添加标题
+        \tikzstyle{captionlabel}=[text width=15*\LastEastx/\scale,text centered]       
+        \path (\LastEastx/2,-\y/2) + (0,-25pt) coordinate (cap) 
+        edge ["\textcolor{black}{ \bf \caption}"',captionlabel](cap) ; % 块标题/图片对象标签
+         
+        % 定义供外部使用的节点坐标（用于连接其他组件）- 2D版本
+        \coordinate (\name-west)   at (0,0) ;                      % 西边中心点
+        \coordinate (\name-east)   at (\LastEastx, 0) ;            % 东边中心点
+        \coordinate (\name-north)  at (\LastEastx/2,\y/2);         % 北边中心点
+        \coordinate (\name-south)  at (\LastEastx/2,-\y/2);        % 南边中心点
+        \coordinate (\name-anchor) at (\LastEastx/2, 0) ;          % 锚点（中心）
+        
+        % 定义2D平面的四个角点坐标
+        \coordinate (\name-northeast) at (\LastEastx, \y/2);       % 右上角
+        \coordinate (\name-northwest) at (0, \y/2);                % 左上角
+        \coordinate (\name-southeast) at (\LastEastx, -\y/2);      % 右下角
+        \coordinate (\name-southwest) at (0, -\y/2);               % 左下角
+        
+    },
+    % 设置参数搜索路径
+    /roundedrectblock/.search also={/tikz},
+    /roundedrectblock/.cd,
+    % 定义可配置的参数
+    width/.store        in=\cubex,          % 宽度（可以是数组）
+    height/.store       in=\cubey,          % 高度
+    scale/.store        in=\scale,          % 缩放因子
+    xlabel/.store       in=\boxlabels,      % x轴标签（宽度标签）
+    ylabel/.store       in=\ylabel,         % y轴标签（高度标签）
+    caption/.store      in=\caption,        % 标题
+    name/.store         in=\name,           % 组件名称
+    fill/.store         in=\fill,           % 填充颜色
+    opacity/.store      in=\opacity,        % 透明度
+    cornerradius/.store in=\cornerradius,   % 圆角半径
+    bordercolor/.store  in=\bordercolor,    % 边框颜色
+    borderwidth/.store  in=\borderwidth,    % 边框线宽
+    % 设置默认值
+    fill={rgb:red,5;green,5;blue,5;white,15},  % 默认浅灰色
+    opacity=0.8,                               % 默认透明度（2D更清晰）
+    cornerradius=3pt,                          % 默认圆角半径（2D稍大）
+    bordercolor=black,                         % 默认边框颜色
+    borderwidth=0.5pt,                         % 默认边框线宽
+    width=4,                                   % 默认宽度（2D适中）
+    height=2,                                  % 默认高度（2D扁平）
+    scale=1.0,                                 % 默认缩放（2D不需要太小）
+    xlabel={{"","","","","","","","","",""}},   % 默认空标签数组
+    ylabel=,                                   % 默认空高度标签
+    caption=,                                  % 默认空标题
+    name=,                                     % 默认空名称
+}
