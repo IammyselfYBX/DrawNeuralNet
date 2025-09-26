@@ -1,0 +1,373 @@
+\documentclass[border=15pt, multi, tikz]{standalone}
+\usepackage{ctex}  % 引入ctex包以支持中文
+\usepackage{import}
+\subimport{../../layers/}{init}  % 引入layers初始化文件
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+
+% 定义Transformer架构中使用的颜色
+\definecolor{attention}{HTML}{F4D03F}     % 注意力机制 - 金黄色
+\definecolor{feedforward}{HTML}{5DADE2}   % 前馈网络 - 蓝色
+\definecolor{norm}{HTML}{D7BDE2}          % 归一化层 - 淡紫色
+\definecolor{embedding}{HTML}{F1948A}     % 嵌入层 - 粉红色
+\definecolor{linear}{HTML}{85C1E9}        % 线性层 - 浅蓝色
+\definecolor{softmax}{HTML}{82E0AA}       % Softmax - 绿色
+\definecolor{encoder}{HTML}{E8F6F3}       % 编码器背景 - 浅绿色
+\definecolor{decoder}{HTML}{FDF2E9}       % 解码器背景 - 浅橙色
+
+\begin{document}
+\begin{tikzpicture}[
+    % 定义连接线样式
+    connect/.style={-latex, thick, black!70},
+    skip/.style={-latex, thick, gray!60, dashed},
+    % 定义文字样式
+    layer_text/.style={font=\footnotesize\bfseries, text=black, align=center},
+    title_text/.style={font=\large\bfseries, text=black}
+]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 编码器部分 (Encoder)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% 输入嵌入层 (Input Embedding)
+\pic[shift={(0,0)}] {RoundedRectangle={
+    name=input_embed,
+    caption=,
+    fill=embedding,
+    width=3,
+    height=0.8,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+% 在矩形内部添加文字
+\node[layer_text] at (input_embed-anchor) {输入嵌入};
+
+% 位置编码 (Positional Encoding) - 使用圆形
+\node[circle, draw=black!50, fill=gray!30, minimum size=0.8cm] (pos_enc_left) at (0, 1.5) {};
+\node[layer_text] at (pos_enc_left) {PE};
+\node[layer_text] at (-1, 1.5) {位置编码};
+
+% 加法符号
+\node[circle, draw=black!50, fill=white, minimum size=0.6cm] (add1) at (1.5, 1.5) {};
+\node[layer_text] at (add1) {+};
+
+% 编码器第一层
+% Multi-Head Self-Attention
+\pic[shift={(0,3)}] {RoundedRectangle={
+    name=enc_attn1,
+    caption=,
+    fill=attention,
+    width=3,
+    height=0.8,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text] at (enc_attn1-anchor) {多头自注意力};
+
+% Add & Norm 1
+\pic[shift={(0,4.2)}] {RoundedRectangle={
+    name=enc_norm1,
+    caption=,
+    fill=norm,
+    width=3,
+    height=0.6,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text, font=\scriptsize\bfseries] at (enc_norm1-anchor) {相加 \& 层归一化};
+
+% Feed Forward Network
+\pic[shift={(0,5.4)}] {RoundedRectangle={
+    name=enc_ff1,
+    caption=,
+    fill=feedforward,
+    width=3,
+    height=0.8,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text] at (enc_ff1-anchor) {前馈神经网络};
+
+% Add & Norm 2
+\pic[shift={(0,6.6)}] {RoundedRectangle={
+    name=enc_norm2,
+    caption=,
+    fill=norm,
+    width=3,
+    height=0.6,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text, font=\scriptsize\bfseries] at (enc_norm2-anchor) {相加 \& 层归一化};
+
+% \draw[thick, encoder, rounded corners=10pt] (-0.2, 2.5) rectangle (3.2, 7.5);
+% 编码器背景框 - 只框住4个主要组件，使用透明的编码器颜色填充
+\draw[thick, fill=encoder, fill opacity=0.3, draw=encoder!80!black, rounded corners=10pt] (-0.2, 2.5) rectangle (3.2, 7.5);
+\node[title_text, color=encoder!80!black, align=center] at (-1.5, 5.8) {编码器\\(Encoder)};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 解码器部分 (Decoder)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% 输出嵌入层 (Output Embedding) - 右移
+\pic[shift={(6,0)}] {RoundedRectangle={
+    name=output_embed,
+    caption=,
+    fill=embedding,
+    width=3,
+    height=0.8,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text, font=\scriptsize\bfseries] at (output_embed-anchor) {输出嵌入（右移）};
+
+% 位置编码 (Positional Encoding) - 解码器侧
+\node[circle, draw=black!50, fill=gray!30, minimum size=0.8cm] (pos_enc_right) at (6, 1.5) {};
+\node[layer_text] at (pos_enc_right) {PE};
+\node[layer_text] at (5, 1.5) {位置编码};
+
+% 加法符号
+\node[circle, draw=black!50, fill=white, minimum size=0.6cm] (add2) at (7.5, 1.5) {};
+\node[layer_text] at (add2) {+};
+
+% 解码器第一层
+% Masked Multi-Head Self-Attention
+\pic[shift={(6,3)}] {RoundedRectangle={
+    name=dec_mask_attn,
+    caption=,
+    fill=attention,
+    width=3,
+    height=0.8,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text, font=\scriptsize\bfseries] at (dec_mask_attn-anchor) {掩码多头自注意力};
+
+% Add & Norm 1 (decoder)
+\pic[shift={(6,4.2)}] {RoundedRectangle={
+    name=dec_norm1,
+    caption=,
+    fill=norm,
+    width=3,
+    height=0.6,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text, font=\scriptsize\bfseries] at (dec_norm1-anchor) {相加 \& 层归一化};
+
+% Cross-Attention (Multi-Head Attention)
+\pic[shift={(6,5.4)}] {RoundedRectangle={
+    name=cross_attn,
+    caption=,
+    fill=attention!70,
+    width=3,
+    height=0.8,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text, font=\scriptsize\bfseries] at (cross_attn-anchor) {多头注意力};
+
+% Add & Norm 2 (decoder)
+\pic[shift={(6,6.6)}] {RoundedRectangle={
+    name=dec_norm2,
+    caption=,
+    fill=norm,
+    width=3,
+    height=0.6,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text, font=\scriptsize\bfseries] at (dec_norm2-anchor) {相加 \& 层归一化};
+
+% Feed Forward Network (decoder)
+\pic[shift={(6,7.8)}] {RoundedRectangle={
+    name=dec_ff,
+    caption=,
+    fill=feedforward,
+    width=3,
+    height=0.8,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text] at (dec_ff-anchor) {前馈神经网络};
+
+% Add & Norm 3 (decoder)
+\pic[shift={(6,9)}] {RoundedRectangle={
+    name=dec_norm3,
+    caption=,
+    fill=norm,
+    width=3,
+    height=0.6,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text, font=\scriptsize\bfseries] at (dec_norm3-anchor) {相加 \& 层归一化};
+
+% Linear Layer
+\pic[shift={(6.25,10.5)}] {RoundedRectangle={
+    name=linear,
+    caption=,
+    fill=linear,
+    width=2.5,
+    height=0.6,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text] at (linear-anchor) {线性层};
+
+% Softmax
+\pic[shift={(6.25,11.7)}] {RoundedRectangle={
+    name=softmax,
+    caption=,
+    fill=softmax,
+    width=2.5,
+    height=0.6,
+    cornerradius=5pt,
+    bordercolor=black!50,
+    borderwidth=0.8pt
+}};
+\node[layer_text] at (softmax-anchor) {Softmax};
+
+% 解码器背景框 - 只框住6个主要组件，使用透明的解码器颜色填充
+\draw[thick, fill=decoder, fill opacity=0.3, draw=decoder!80!black, rounded corners=10pt] (5.8, 2.5) rectangle (9.2, 9.8);
+\node[title_text, color=decoder!80!black, align=center] at (4.5, 8.1) {解码器\\(Decoder)};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 连接线部分 (Connections) - 展示数据流向和残差连接
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% 编码器内部连接 - 主要的前向传播路径
+\draw[connect] (input_embed-north) -- (add1);
+\draw[connect] (pos_enc_left) -- (add1);
+\draw[connect] (add1) -- (enc_attn1-south);
+\draw[connect] (enc_attn1-north) -- (enc_norm1-south);
+\draw[connect] (enc_norm1-north) -- (enc_ff1-south);
+\draw[connect] (enc_ff1-north) -- (enc_norm2-south);
+
+% 编码器的残差连接（跳跃连接） - 根据Transformer架构图绘制正确的残差结构
+% 【重要说明】残差连接的核心思想：将输入直接"跳过"中间的计算层，直接加到输出上
+% 这样做的好处：1) 缓解梯度消失问题 2) 使网络更容易训练 3) 保持信息流动
+
+% 第一个残差块：多头注意力的输入直接跳跃连接到Add&Norm1
+% 【残差公式】output = MultiHeadAttention(input) + input，然后进行LayerNorm
+% 定义多头注意力输入点（来自位置编码后的加法输出）
+\path (add1) -- (enc_attn1-south) coordinate[pos=0.1] (enc_skip_start1);
+% 定义Add&Norm1的侧面连接点
+\path (enc_norm1-east) coordinate (enc_skip_end1);
+% 绘制第一个残差连接：从多头注意力输入绕过多头注意力模块直接连接到Add&Norm1
+% 修正箭头方向：箭头应该指向Add&Norm层
+\draw[skip] (enc_skip_start1) -- ++(1.8,0) |- ($(enc_skip_end1) + (0.3,0)$) -- (enc_skip_end1);
+
+% 第二个残差块：前馈网络的输入直接跳跃连接到Add&Norm2  
+% 【残差公式】output = FeedForward(input) + input，然后进行LayerNorm
+% 定义前馈网络输入点（来自第一个Add&Norm的输出）
+\path (enc_norm1-north) -- (enc_ff1-south) coordinate[pos=0.1] (enc_skip_start2);
+% 定义Add&Norm2的侧面连接点
+\path (enc_norm2-east) coordinate (enc_skip_end2);
+% 绘制第二个残差连接：从前馈网络输入绕过前馈网络模块直接连接到Add&Norm2
+% 修正箭头方向：箭头应该指向Add&Norm层
+\draw[skip] (enc_skip_start2) -- ++(1.8,0) |- ($(enc_skip_end2) + (0.3,0)$) -- (enc_skip_end2);
+
+% 解码器内部连接 - 主要的前向传播路径
+\draw[connect] (output_embed-north) -- (add2);
+\draw[connect] (pos_enc_right) -- (add2);
+\draw[connect] (add2) -- (dec_mask_attn-south);
+\draw[connect] (dec_mask_attn-north) -- (dec_norm1-south);
+\draw[connect] (dec_norm1-north) -- (cross_attn-south);
+\draw[connect] (cross_attn-north) -- (dec_norm2-south);
+\draw[connect] (dec_norm2-north) -- (dec_ff-south);
+\draw[connect] (dec_ff-north) -- (dec_norm3-south);
+\draw[connect] (dec_norm3-north) -- (linear-south);
+\draw[connect] (linear-north) -- (softmax-south);
+
+% 解码器的残差连接（跳跃连接） - 根据Transformer架构图绘制正确的残差结构
+% 【重要说明】解码器有3个残差连接，每个都遵循相同的模式：input + SubLayer(input)
+
+% 第一个残差块：掩码多头注意力的输入直接跳跃连接到Add&Norm1
+% 【残差公式】output = MaskedMultiHeadAttention(input) + input，然后进行LayerNorm
+% 【掩码作用】确保当前位置只能看到之前的位置，防止"未来信息泄漏"
+% 定义掩码多头注意力输入点（来自位置编码后的加法输出）
+\path (add2) -- (dec_mask_attn-south) coordinate[pos=0.1] (dec_skip_start1);
+% 定义Add&Norm1的侧面连接点
+\path (dec_norm1-east) coordinate (dec_skip_end1);
+% 绘制第一个残差连接：从掩码多头注意力输入绕过掩码多头注意力模块直接连接到Add&Norm1
+% 修正箭头方向：箭头应该指向Add&Norm层
+\draw[skip] (dec_skip_start1) -- ++(1.8,0) |- ($(dec_skip_end1) + (0.3,0)$) -- (dec_skip_end1);
+
+% 第二个残差块：多头注意力（交叉注意力）的输入直接跳跃连接到Add&Norm2
+% 【残差公式】output = MultiHeadAttention(Q=dec_input, K=enc_output, V=enc_output) + dec_input
+% 【交叉注意力】Q来自解码器，K和V来自编码器，实现编码器-解码器信息交互
+% 定义多头注意力输入点（来自第一个Add&Norm的输出）
+\path (dec_norm1-north) -- (cross_attn-south) coordinate[pos=0.1] (dec_skip_start2);
+% 定义Add&Norm2的侧面连接点
+\path (dec_norm2-east) coordinate (dec_skip_end2);
+% 绘制第二个残差连接：从多头注意力输入绕过多头注意力模块直接连接到Add&Norm2
+% 修正箭头方向：箭头应该指向Add&Norm层
+\draw[skip] (dec_skip_start2) -- ++(1.8,0) |- ($(dec_skip_end2) + (0.3,0)$) -- (dec_skip_end2);
+
+% 第三个残差块：前馈网络的输入直接跳跃连接到Add&Norm3
+% 【残差公式】output = FeedForward(input) + input，然后进行LayerNorm
+% 【前馈网络】通常是两个线性变换加ReLU：FFN(x) = max(0, xW1 + b1)W2 + b2
+% 定义前馈网络输入点（来自第二个Add&Norm的输出）
+\path (dec_norm2-north) -- (dec_ff-south) coordinate[pos=0.1] (dec_skip_start3);
+% 定义Add&Norm3的侧面连接点
+\path (dec_norm3-east) coordinate (dec_skip_end3);
+% 绘制第三个残差连接：从前馈网络输入绕过前馈网络模块直接连接到Add&Norm3
+% 修正箭头方向：箭头应该指向Add&Norm层
+\draw[skip] (dec_skip_start3) -- ++(1.8,0) |- ($(dec_skip_end3) + (0.3,0)$) -- (dec_skip_end3);
+
+% 编码器到解码器的连接（交叉注意力的K,V输入）
+% 【关键连接】编码器的输出作为解码器交叉注意力的Key和Value
+% 这是Transformer实现序列到序列转换的核心机制
+\draw[connect, blue!70, very thick] (enc_norm2-east) -- ($(enc_norm2-east) + (1.5,0)$) |- (cross_attn-west);
+% 添加K,V标签 - 表示Key和Value来自编码器
+\node[layer_text, color=blue!70, font=\tiny] at ($(enc_norm2-east) + (0.8,-0.3)$) {K,V};
+
+% 输入输出标签 - 明确数据流的起点和终点
+\node[layer_text, below=0.3cm of input_embed-south] {输入序列};
+\node[layer_text, above=0.3cm of softmax-north] {输出概率};
+
+% 添加"N×"标记表示多层堆叠 - 调整位置
+% 【说明】实际应用中编码器和解码器都是多层堆叠的，通常N=6或更多
+\node[layer_text, color=red!70] at (-0.5, 5) {N×};
+\node[layer_text, color=red!70] at (5.5, 6) {N×};
+
+% 添加图例说明 - 采用左右布局避免重叠
+\node[title_text] at (4, 13) {Transformer 架构图};
+
+% 左侧：基本图例说明
+\node[layer_text, align=left] at (0.5, -3) {
+    \textbf{图例说明：}\\
+    \textcolor{red!70}{N×}: 表示该结构重复N层\\
+    \textcolor{blue!70}{蓝色粗线}: 编码器向解码器传递K,V\\
+    \textcolor{gray!60}{虚线}: 残差连接（跳跃连接）\\
+    \textcolor{blue!70}{残差连接作用：}缓解梯度消失问题，便于训练深层网络
+};
+
+% 右侧：详细的残差连接说明
+\node[layer_text, align=left, font=\tiny] at (7.5, -3.2) {
+    \textbf{残差连接详解：}\\
+    \textcolor{gray!60}{编码器残差连接：}\\
+    • 第1个：多头注意力输入 → Add\&Norm1（跳过多头注意力计算）\\
+    • 第2个：前馈网络输入 → Add\&Norm2（跳过前馈网络计算）\\
+    \textcolor{gray!60}{解码器残差连接：}\\
+    • 第1个：掩码注意力输入 → Add\&Norm1（跳过掩码注意力计算）\\
+    • 第2个：交叉注意力输入 → Add\&Norm2（跳过交叉注意力计算）\\
+    • 第3个：前馈网络输入 → Add\&Norm3（跳过前馈网络计算）
+};
+
+\end{tikzpicture}
+\end{document}
