@@ -7,7 +7,7 @@
 
 \tikzset{RoundedRectangle/.pic={\tikzset{/roundedrectblock/.cd,#1}
         % 定义2D圆角矩形的样式，设置填充透明度、边框样式和圆角
-        \tikzstyle{roundedrect}=[fill opacity=\opacity, pic actions, fill=\fill, 
+        \tikzstyle{roundedrect}=[fill opacity=\opacity, fill=\fill, 
                                 draw=\bordercolor, line width=\borderwidth, 
                                 rounded corners=\cornerradius]
         
@@ -28,12 +28,12 @@
             \coordinate (c) at (\k    ,-\y/2);   % 右下
             \coordinate (d) at (\k    , \y/2);   % 右上
         
-            % 绘制2D圆角矩形
+            % 绘制2D圆角矩形 - 使用rectangle命令确保所有角都是圆角
             \draw [roundedrect] 
-                (a) -- (d) -- (c) -- (b) -- cycle;  % 绘制完整的矩形
+                (\k-\x, -\y/2) rectangle (\k, \y/2);  % 直接绘制矩形
             
-            % 在底边中点添加宽度标签
-            \path (b) edge ["\xlabel"',midway] (c);
+            % 在底边中点添加宽度标签 - 修改为不使用edge，避免覆盖圆角
+            \node[below=2pt] at (\k-\x/2, -\y/2) {\xlabel};
             
             % 保存最后一个块的东边x坐标
             \xdef\LastEastx{\k} %\k在循环结束后保持为\LastEastx
@@ -43,8 +43,8 @@
         \coordinate (a1) at (0 , \y/2);
         \coordinate (b1) at (0 ,-\y/2);
         
-        % 添加高度标签
-        \path (b1) edge ["\ylabel",midway] (a1);  % 高度标签
+        % 添加高度标签 - 修改为不使用edge，避免覆盖圆角
+        \node[left=2pt, rotate=90] at (0, 0) {\ylabel};
         
         % 设置标题标签样式并添加标题
         \tikzstyle{captionlabel}=[text width=15*\LastEastx/\scale,text centered]       
